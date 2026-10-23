@@ -399,3 +399,51 @@ tr:hover td{background:var(--bg-card-hover)}
 .qa-left{display:flex;align-items:center;gap:14px}
 .qa-title{font-size:14px;font-weight:600}
 .qa-desc{font-size:12px;color:var(--text-muted)}
+
+/* ── Settings extras ──────────────────────────────────────────── */
+.settings-input{
+  width:72px;padding:7px 10px;border-radius:var(--radius-sm);
+  background:var(--bg-input);border:1px solid var(--border);
+  color:var(--text-primary);font-size:13px;font-family:inherit;
+  outline:none;text-align:right;transition:border-color var(--ease-fast);
+}
+.settings-input:focus{border-color:var(--accent-blue)}
+.settings-count{
+  float:right;font-size:11px;font-weight:500;text-transform:none;
+  letter-spacing:0;color:var(--text-muted);
+}
+
+/* ── Upload zone success state ────────────────────────────────── */
+.upload-zone.has-file{
+  cursor:default;padding:28px 32px;border-style:solid;
+  border-color:rgba(34,197,94,.25);background:var(--clr-low-bg);
+}
+.upload-success{
+  display:flex;align-items:center;gap:10px;
+  color:var(--clr-low);font-size:14px;font-weight:500;
+}
+
+/* ── Responsive design ────────────────────────────────────────── */
+@media (max-width: 900px) {
+  :root { --sidebar-w: 68px; }
+  .sidebar-head > div:last-child { display: none; }
+  .sidebar-logo { width: 36px; height: 36px; }
+  .sidebar-logo svg { width: 18px; height: 18px; }
+  .sidebar-head { justify-content: center; padding: 16px 8px; }
+  .nav-item span { display: none; }
+  .nav-item { justify-content: center; padding: 11px; }
+  .sidebar-foot-text { font-size: 0; }
+  .sidebar-foot-text .warn { font-size: 0; }
+  .sidebar-nav { padding: 14px 6px; }
+  .page-scroll { padding: 20px 18px; }
+  .page-header { padding: 16px 18px; }
+}
+
+@media (max-width: 640px) {
+  .stats-row { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .qa-grid { grid-template-columns: 1fr; }
+  .page-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .file-card { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .file-card-meta { flex-wrap: wrap; }
+}
+

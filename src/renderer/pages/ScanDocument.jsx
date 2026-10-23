@@ -7,6 +7,7 @@ import {
   X,
   HardDrive,
   AlertTriangle,
+  CheckCircle,
 } from 'lucide-react';
 
 const ACCEPTED = {
@@ -16,6 +17,17 @@ const ACCEPTED = {
   'image/jpeg':      '.jpg',
 };
 const ACCEPTED_EXTS = ['.txt', '.pdf', '.png', '.jpg', '.jpeg'];
+
+function getMaxFileSizeMB() {
+  try {
+    const raw = localStorage.getItem('pii-shield-settings');
+    if (raw) {
+      const s = JSON.parse(raw);
+      if (s.maxFileSizeMB && s.maxFileSizeMB > 0) return s.maxFileSizeMB;
+    }
+  } catch { /* ignore */ }
+  return 50; // default 50 MB
+}
 
 function formatBytes(bytes) {
   if (bytes === 0) return '0 B';
@@ -31,17 +43,31 @@ function extIcon(ext) {
   return <FileText />;
 }
 
+function extLabel(ext) {
+  const map = { '.txt': 'Text', '.pdf': 'PDF', '.png': 'PNG Image', '.jpg': 'JPEG Image', '.jpeg': 'JPEG Image' };
+  return map[ext] || ext.toUpperCase().replace('.', '');
+}
+
 export default function ScanDocument({ onNavigate, toast }) {
   const [file, setFile] = useState(null);       // { name, size, ext, path? }
   const [dragOver, setDragOver] = useState(false);
   const [error, setError] = useState('');
   const inputRef = useRef(null);
 
-  // ── validate extension ───────────────────────────
+  // ── validate extension & size ─────────────────────
   const accept = useCallback((name, size, ext, extra) => {
     if (!ACCEPTED_EXTS.includes(ext)) {
-      setError(`Unsupported file type: ${ext}`);
-      toast?.('Unsupported file type', 'error');
+      const msg = `Unsupported file type "${ext}". Please use TXT, PDF, PNG, or JPG.`;
+      setError(msg);
+      toast?.(msg, 'error');
+      return;
+    }
+    const maxMB = getMaxFileSizeMB();
+    const maxBytes = maxMB * 1024 * 1024;
+    if (size > maxBytes) {
+      const msg = `File too large (${formatBytes(size)}). Maximum is ${maxMB} MB.`;
+      setError(msg);
+      toast?.(msg, 'error');
       return;
     }
     setError('');
@@ -97,21 +123,30 @@ export default function ScanDocument({ onNavigate, toast }) {
       <div className="page-scroll">
         {/* ── Upload zone ────────────────────────────── */}
         <div
-          className={`upload-zone fade-up${dragOver ? ' drag-over' : ''}`}
-          onClick={openNativeDialog}
+          className={`upload-zone fade-up${dragOver ? ' drag-over' : ''}${file ? ' has-file' : ''}`}
+          onClick={file ? undefined : openNativeDialog}
           onDragOver={onDragOver}
           onDragLeave={onDragLeave}
           onDrop={onDrop}
         >
-          <div className="upload-icon"><Upload /></div>
-          <div className="upload-title">Drop a file here or click to browse</div>
-          <div className="upload-sub">Supports text documents, PDFs, and images</div>
-          <div className="format-pills">
-            <span className="format-pill">.TXT</span>
-            <span className="format-pill">.PDF</span>
-            <span className="format-pill">.PNG</span>
-            <span className="format-pill">.JPG</span>
-          </div>
+          {!file ? (
+            <>
+              <div className="upload-icon"><Upload /></div>
+              <div className="upload-title">Drop a file here or click to browse</div>
+              <div className="upload-sub">Supports text documents, PDFs, and images (max {getMaxFileSizeMB()} MB)</div>
+              <div className="format-pills">
+                <span className="format-pill">.TXT</span>
+                <span className="format-pill">.PDF</span>
+                <span className="format-pill">.PNG</span>
+                <span className="format-pill">.JPG</span>
+              </div>
+            </>
+          ) : (
+            <div className="upload-success">
+              <CheckCircle size={24} />
+              <span>File selected — drop a different file to replace</span>
+            </div>
+          )}
           {/* Hidden input as fallback when not running in Electron */}
           <input
             ref={inputRef}
@@ -138,7 +173,7 @@ export default function ScanDocument({ onNavigate, toast }) {
               <div className="file-card-name">{file.name}</div>
               <div className="file-card-meta">
                 <span><HardDrive size={13} /> {formatBytes(file.size)}</span>
-                <span>{file.ext.toUpperCase().replace('.', '')} file</span>
+                <span>{extLabel(file.ext)}</span>
                 {file.path && <span className="mono" style={{ opacity: .5 }}>{file.path}</span>}
               </div>
             </div>

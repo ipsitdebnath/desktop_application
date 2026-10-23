@@ -25,7 +25,7 @@ export default function App() {
     scan:       <ScanDocument onNavigate={go} toast={toast} />,
     results:    <DetectionResults onNavigate={go} />,
     history:    <ScanHistory onNavigate={go} toast={toast} />,
-    settings:   <Settings />,
+    settings:   <Settings toast={toast} />,
   };
 
   return (
