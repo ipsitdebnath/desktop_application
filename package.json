@@ -9,9 +9,18 @@
     "dev:electron": "wait-on http://localhost:5173 && electron .",
     "dev": "concurrently --kill-others \"npm run dev:renderer\" \"npm run dev:electron\"",
     "build": "vite build",
-    "start": "electron ."
+    "start": "electron .",
+    "test": "npm run test:detector",
+    "test:detector": "node src/tests/piiDetector.test.mjs",
+    "dist:mac": "npm run build && node scripts/package-mac.cjs",
+    "dist:mac:dir": "npm run build && electron-builder --mac dir"
   },
-  "keywords": ["pii", "privacy", "electron", "security"],
+  "keywords": [
+    "pii",
+    "privacy",
+    "electron",
+    "security"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
@@ -27,8 +36,45 @@
     "@vitejs/plugin-react": "^6.1.2",
     "concurrently": "^10.0.6",
     "electron": "^45.0.0",
+    "electron-builder": "^26.18.0",
     "electron-squirrel-startup": "^1.0.1",
     "vite": "^8.3.5",
     "wait-on": "^9.5.1"
+  },
+  "build": {
+    "appId": "com.piishield.desktop",
+    "productName": "PII Shield",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "dist/renderer/**/*",
+      "src/main/**/*",
+      "package.json"
+    ],
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": "arm64"
+        }
+      ]
+    },
+    "dmg": {
+      "title": "PII Shield",
+      "contents": [
+        {
+          "x": 170,
+          "y": 180
+        },
+        {
+          "x": 480,
+          "y": 180,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    },
+    "asar": true
   }
 }
