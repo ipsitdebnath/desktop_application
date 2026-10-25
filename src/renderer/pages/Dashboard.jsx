@@ -9,7 +9,9 @@ import {
   ArrowRight,
 } from 'lucide-react';
 
-export default function Dashboard({ onNavigate }) {
+export default function Dashboard({ onNavigate, history = [], latestScan }) {
+  const piiCount = history.reduce((sum, item) => sum + (item.piiCount || 0), 0);
+  const risk = latestScan?.risk?.label || history[0]?.riskLevel || '—';
   return (
     <>
       {/* ── Header ───────────────────────────────────── */}
@@ -27,10 +29,10 @@ export default function Dashboard({ onNavigate }) {
       <div className="page-scroll">
         {/* ── Stat cards ──────────────────────────────── */}
         <div className="stats-row fade-up">
-          <StatCard icon={<FileText />} color="blue"  value="0" label="Documents Scanned" />
-          <StatCard icon={<ShieldAlert />} color="teal" value="0" label="PII Detected" />
-          <StatCard icon={<AlertTriangle />} color="amber" value="—" label="Risk Level" />
-          <StatCard icon={<Activity />} color="red" value="—" label="Last Scan" />
+          <StatCard icon={<FileText />} color="blue"  value={history.length} label="Documents Scanned" />
+          <StatCard icon={<ShieldAlert />} color="teal" value={piiCount} label="PII Detected" />
+          <StatCard icon={<AlertTriangle />} color="amber" value={risk} label="Risk Level" />
+          <StatCard icon={<Activity />} color="red" value={history[0] ? new Date(history[0].timestamp).toLocaleDateString() : '—'} label="Last Scan" />
         </div>
 
         {/* ── Disclaimer ─────────────────────────────── */}

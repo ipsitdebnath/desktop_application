@@ -9,6 +9,8 @@ import {
   AlertTriangle,
   CheckCircle,
 } from 'lucide-react';
+import { extractDocument } from '../../services/documentExtractor.js';
+import { classifyRisk, detectPII } from '../../services/piiDetector.js';
 
 const ACCEPTED = {
   'text/plain':      '.txt',
@@ -48,10 +50,12 @@ function extLabel(ext) {
   return map[ext] || ext.toUpperCase().replace('.', '');
 }
 
-export default function ScanDocument({ onNavigate, toast }) {
+export default function ScanDocument({ onNavigate, toast, onScanComplete }) {
   const [file, setFile] = useState(null);       // { name, size, ext, path? }
   const [dragOver, setDragOver] = useState(false);
   const [error, setError] = useState('');
+  const [scanning, setScanning] = useState(false);
+  const [progress, setProgress] = useState(0);
   const inputRef = useRef(null);
 
   // ── validate extension & size ─────────────────────
@@ -80,7 +84,7 @@ export default function ScanDocument({ onNavigate, toast }) {
     const f = e.target.files?.[0];
     if (!f) return;
     const ext = '.' + f.name.split('.').pop().toLowerCase();
-    accept(f.name, f.size, ext);
+    accept(f.name, f.size, ext, { browserFile: f });
     e.target.value = '';   // allow re-selecting same file
   }, [accept]);
 
@@ -105,8 +109,27 @@ export default function ScanDocument({ onNavigate, toast }) {
     }
     const result = await window.electronAPI.openFile();
     if (result.canceled) return;
-    accept(result.name, result.size, result.ext, { path: result.path });
+    const contents = await window.electronAPI.readFile(result.path);
+    if (!contents?.success) { setError(contents?.error || 'Unable to read selected file.'); return; }
+    const browserFile = new File([contents.data], result.name);
+    accept(result.name, result.size, result.ext, { path: result.path, browserFile });
   }, [accept]);
+
+  const scan = useCallback(async () => {
+    if (!file?.browserFile || scanning) return;
+    setScanning(true); setError(''); setProgress(0);
+    try {
+      const extraction = await extractDocument(file.browserFile, file.ext, setProgress);
+      if (!extraction.success) throw new Error(extraction.error || 'Document extraction failed.');
+      const settings = JSON.parse(localStorage.getItem('pii-shield-settings') || '{}');
+      const findings = detectPII(extraction.text, { enabledPatterns: settings.detectionPatterns });
+      onScanComplete?.({ file: { name: file.name, size: file.size, ext: file.ext }, extraction, findings, risk: classifyRisk(findings), timestamp: new Date().toISOString() });
+      toast?.(`Scan complete: ${findings.length} potential finding(s)`, findings.length ? 'info' : 'success');
+    } catch (err) {
+      setError(err.message || 'Scan failed.');
+      toast?.(err.message || 'Scan failed.', 'error');
+    } finally { setScanning(false); }
+  }, [file, scanning, onScanComplete, toast]);
 
   const clearFile = () => { setFile(null); setError(''); };
 
@@ -183,14 +206,14 @@ export default function ScanDocument({ onNavigate, toast }) {
           </div>
         )}
 
-        {/* ── Scan button (disabled until detection engine exists) ─ */}
+        {/* ── Scan button ────────────────────────────── */}
         {file && (
           <div className="mt-md fade-up" style={{ animationDelay: '.1s' }}>
-            <button className="btn btn-primary" disabled title="PII detection will be implemented on Day 2">
-              Scan for PII (coming soon)
+            <button className="btn btn-primary" disabled={scanning} onClick={scan}>
+              {scanning ? `Scanning… ${progress}%` : 'Scan for PII'}
             </button>
             <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 8 }}>
-              Document parsing, text extraction, and PII detection will be added in the next build.
+              Text, PDF, and image contents are processed locally. Extraction warnings are shown with the results.
             </p>
           </div>
         )}

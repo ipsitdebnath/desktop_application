@@ -11,6 +11,7 @@ const DETECTION_TYPES = [
   { id: 'voter_id',         name: 'Voter ID',          desc: 'EPIC number' },
   { id: 'pincode',          name: 'PIN Code',          desc: 'Indian postal code' },
   { id: 'dob',              name: 'Date of Birth',     desc: 'Date patterns' },
+  { id: 'credit_card',      name: 'Credit Card',       desc: 'Luhn-checked card candidates' },
 ];
 
 const STORAGE_KEY = 'pii-shield-settings';
@@ -159,7 +160,7 @@ export default function Settings({ toast }) {
           <div className="setting-row">
             <div>
               <div className="setting-name">Version</div>
-              <div className="setting-desc">1.0.0 — Day 1 (UI Foundation)</div>
+            <div className="setting-desc">1.0.0 — local heuristic detection and redaction</div>
             </div>
           </div>
           <div className="setting-row">
@@ -177,9 +178,7 @@ export default function Settings({ toast }) {
           <div className="alert alert-info mt-sm">
             <Info />
             <div>
-              Pattern toggles above will take effect once the detection engine is
-              connected in a future build. Settings are stored locally in your
-              application data folder.
+              Pattern toggles apply to the next scan. Settings are stored locally in your application data folder.
             </div>
           </div>
         </div>

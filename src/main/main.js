@@ -76,6 +76,15 @@ ipcMain.handle('dialog:openFile', async () => {
   };
 });
 
+ipcMain.handle('file:read', async (_event, filePath) => {
+  try {
+    const data = await fs.promises.readFile(filePath);
+    return { success: true, data: new Uint8Array(data) };
+  } catch (error) {
+    return { success: false, error: `Unable to read selected file: ${error.message}` };
+  }
+});
+
 // Scan-history persistence (stores metadata only — never stores document content)
 const historyFilePath = () => path.join(app.getPath('userData'), 'scan-history.json');
 
