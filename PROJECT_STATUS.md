@@ -20,14 +20,16 @@ Updated: 2026-10-25
 - PDF extraction handles selectable text only; scanned PDFs need image OCR separately.
 - OCR language data may be fetched by Tesseract.js on first use; this was not converted to an offline asset bundle.
 - Secure PDF redaction export is not implemented. TXT export is the supported redaction artifact; visual PDF overlays are intentionally not claimed.
-- DMG signing/notarization depends on Apple Developer credentials and is not configured.
+- DMG signing/notarization depends on Apple Developer credentials and is not configured. `codesign --verify` therefore reports the expected unsigned-app failure.
 
 ## Verification
 
 - `npm run test`: 56 passed, 0 failed.
 - `npm run build`: passed; PDF worker included in `dist/renderer/assets`.
-- Installer: run `npm run dist:mac`; output is written under `dist/` for the current host architecture.
+- Installer: `dist/PII Shield-1.0.0-arm64.dmg` generated successfully; 172,554,447 bytes (165 MB). It mounted read-only, contained `PII Shield.app` and an Applications shortcut, and the packaged binary launched from the mounted image.
+- Packaging uses the production bundle and does not require a Vite server. The app bundle contains `app.asar` with the renderer assets and PDF worker.
+- Interactive packaged TXT scan was not completed because macOS Assistive Access is unavailable to the UI automation bridge on this host; app launch and bundle inspection were completed.
 
 ## Latest commit
 
-See `git log -1 --oneline` after the next commit. Keep this file updated after packaging.
+`f15bbc7 test: record production and DMG verification`

@@ -13,5 +13,6 @@
 | Dashboard/history integration | COMPLETED | App scan state + metadata-only history |
 | Automated detector tests | COMPLETED | `npm run test` — 56/56 |
 | Production renderer build | COMPLETED | `npm run build` passed |
-| macOS DMG | IN PROGRESS | Run and inspect `npm run dist:mac` |
-| Signing/notarization | NOT STARTED | No credentials/configuration supplied |
+| macOS DMG | COMPLETED | `dist/PII Shield-1.0.0-arm64.dmg`, 165 MB; mounted and app launch process verified |
+| Packaged interactive TXT scan | BLOCKED | UI automation cannot access Assistive Access on this host |
+| Signing/notarization | NOT STARTED | No credentials/configuration supplied; artifact is unsigned |
